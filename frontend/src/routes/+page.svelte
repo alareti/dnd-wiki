@@ -1,7 +1,35 @@
-<script>
-	import Counter from './Counter.svelte';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcome_fallback from '$lib/images/svelte-welcome.png';
+<script lang="ts">
+	import { env } from '$env/dynamic/public';
+  import { onMount } from 'svelte';
+
+  let apiUrl = env.PUBLIC_API_URL;
+  let session: string | null = null;
+
+  const getSession = () => {
+    const token = localStorage.getItem("session");
+    if (token) {
+      session = token;
+    }
+  };
+
+  const signOut = async () => {
+    localStorage.removeItem("session");
+    session = null;
+  };
+
+  onMount(() => {
+    const search = window.location.search;
+    const params = new URLSearchParams(search);
+    const token = params.get("token");
+    if (token) {
+      localStorage.setItem("session", token);
+      window.location.replace(window.location.origin);
+    }
+  });  
+
+  onMount(() => {
+    getSession();
+  });
 </script>
 
 <svelte:head>
@@ -10,50 +38,17 @@
 </svelte:head>
 
 <section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcome_fallback} alt="Welcome" />
-			</picture>
-		</span>
-
-		to your new<br />SvelteKit app
-	</h1>
-
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-	<Counter />
+	<h2>SST Auth Example</h2>
+  {#if session}
+  <div>
+    <p>Yeah! You are signed in.</p>
+    <button on:click={signOut}>Sign out</button>
+  </div>
+{:else}
+  <div>
+    <a href="{apiUrl}/auth/google/authorize" rel="noreferrer">
+      <button>Sign in with Google</button>
+    </a>
+  </div>
+{/if}
 </section>
-
-<style>
-	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
-	}
-
-	h1 {
-		width: 100%;
-	}
-
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
-
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
-	}
-</style>

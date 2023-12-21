@@ -1,5 +1,5 @@
 import { SSTConfig } from "sst";
-import { FrontendStack } from "./stacks/FrontendStack";
+import { ExampleStack } from "./stacks/ExampleStack";
 
 export default {
   config(_input) {
@@ -10,6 +10,6 @@ export default {
     };
   },
   stacks(app) {
-    app.stack(FrontendStack);
-  },
+    app.stack(ExampleStack);
+  }
 } satisfies SSTConfig;

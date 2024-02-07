@@ -22,7 +22,7 @@ export function ExampleStack({ stack }: StackContext) {
   });
 
   const site = new SvelteKitSite(stack, "SvelteSite", {
-    path: "frontend",
+    path: "frontend/",
     environment: {
       PUBLIC_API_URL: api.url,
     },
@@ -32,7 +32,7 @@ export function ExampleStack({ stack }: StackContext) {
   const auth = new Auth(stack, "auth", {
     authenticator: {
       handler: "packages/functions/src/auth.handler",
-      // bind: [site],
+      bind: [site],
     },
   });
   auth.attach(stack, {

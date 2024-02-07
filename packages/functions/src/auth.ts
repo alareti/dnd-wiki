@@ -2,6 +2,7 @@ import { AuthHandler, GoogleAdapter, Session } from "sst/node/auth";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
 import { Table } from "sst/node/table";
+import { SvelteKitSite } from "sst/node/site";
 
 declare module "sst/node/auth" {
   export interface SessionTypes {
@@ -36,7 +37,9 @@ export const handler = AuthHandler({
         );
 
         return Session.parameter({
-          redirect: "http://localhost:5173",
+          redirect: process.env.IS_LOCAL
+            ? "http://localhost:5173"
+            : SvelteKitSite.SvelteSite.url,
           type: "user",
           properties: {
             userID: claims.sub,

@@ -3,13 +3,29 @@
 	import { onMount } from 'svelte';
 
 	let apiUrl = env.PUBLIC_API_URL;
-	let session: string | null = null;
+	let session: any = null;
 
-	const getSession = () => {
+	const getUserInfo = async (session: any) => {
+		try {
+			const response = await fetch(`${apiUrl}/session`, {
+				method: 'GET',
+				headers: {
+					Authorization: `Bearer ${session}`
+				}
+			});
+			return response.json();
+		} catch (error) {
+			console.log("Here's the error");
+		}
+	};
+
+	const getSession = async () => {
 		const token = localStorage.getItem('session');
 		if (token) {
-			session = token;
+			const user = await getUserInfo(token);
+			if (user) session = user;
 		}
+		loading = false;
 	};
 
 	const signOut = async () => {
@@ -17,7 +33,8 @@
 		session = null;
 	};
 
-	onMount(() => {
+	let loading = true;
+	onMount(async () => {
 		const search = window.location.search;
 		const params = new URLSearchParams(search);
 		const token = params.get('token');
@@ -25,9 +42,6 @@
 			localStorage.setItem('session', token);
 			window.location.replace(window.location.origin);
 		}
-	});
-
-	onMount(() => {
 		getSession();
 	});
 </script>
@@ -39,10 +53,16 @@
 
 <section>
 	<h2>SST Auth Example</h2>
-	{#if session}
+	{#if loading}
+		<div></div>
+	{:else if session}
 		<div>
-			<p>Yeah! You are signed in.</p>
-			<button on:click={signOut}>Sign out</button>
+			<div class="profile">
+				<p>Welcome {session.name}!</p>
+				<img src={session.picture} width={100} height={100} alt="" />
+				<p>{session.email}</p>
+				<button on:click={signOut}>Sign out</button>
+			</div>
 		</div>
 	{:else}
 		<div>

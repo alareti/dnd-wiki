@@ -1,6 +1,22 @@
-import { StackContext, SvelteKitSite, Table, Api, Auth } from "sst/constructs";
+import {
+  StackContext,
+  SvelteKitSite,
+  Table,
+  Api,
+  Auth,
+  Config,
+} from "sst/constructs";
 
-export function ExampleStack({ stack }: StackContext) {
+export function ExampleStack({ stack, app }: StackContext) {
+  // Define custom domain name
+  const domain = "alareti.com";
+  const stage = app.stage;
+  const DOMAIN_NAME = new Config.Parameter(stack, "DOMAIN_NAME", {
+    value: domain,
+  });
+
+  const apiDomain = `${stage}-api.${domain}`;
+
   // Create a database Table
   const table = new Table(stack, "users", {
     fields: {
@@ -16,8 +32,17 @@ export function ExampleStack({ stack }: StackContext) {
         bind: [table],
       },
     },
+    customDomain: apiDomain,
     routes: {
       "GET /session": "packages/functions/src/session.handler",
+    },
+    cors: {
+      allowOrigins:
+        stage == "prod"
+          ? [`https://${domain}`, `https://www.${domain}`]
+          : ["*"],
+      allowHeaders: ["Content-Type", "Authorization"],
+      allowCredentials: stage == "prod" ? true : false,
     },
   });
 
@@ -25,6 +50,10 @@ export function ExampleStack({ stack }: StackContext) {
     path: "frontend/",
     environment: {
       PUBLIC_API_URL: api.url,
+    },
+    customDomain: {
+      domainName: domain,
+      domainAlias: `www.${domain}`,
     },
   });
 
@@ -43,6 +72,8 @@ export function ExampleStack({ stack }: StackContext) {
   // Add the site's URL to stack output
   stack.addOutputs({
     ApiEndpoint: api.url,
-    URL: site.url,
+    ApiCustomUrl: api.customDomainUrl,
+    SiteEndpoint: site.url,
+    SiteCustomUrl: site.customDomainUrl,
   });
 }

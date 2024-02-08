@@ -15,11 +15,16 @@ declare module "sst/node/auth" {
 const GOOGLE_CLIENT_ID =
   "51674019161-hq8h1hjukcqj1hirnb1fcto4qcep78n4.apps.googleusercontent.com";
 
+// Need to store this in AWS Secrets Manager
+const GOOGLE_CLIENT_SECRET = "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";
+
 export const handler = AuthHandler({
   providers: {
     google: GoogleAdapter({
-      mode: "oidc",
+      mode: "oauth",
       clientID: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
+      scope: "openid email profile",
       onSuccess: async (tokenset) => {
         const claims = tokenset.claims();
 
